@@ -46,6 +46,7 @@ app.get('/empAll',async (req,res) => {
 app.get('/emp/:empID',async (req,res) => {
     const {name} = req.query
     const {empID} = req.params
+    console.log(name,"NAM")
     try {
         if(name === ''){
             let emp = await Employee.findOne({empID})
@@ -63,8 +64,10 @@ app.get('/emp/:empID',async (req,res) => {
         if(emp){
            return res.status(200).json({msg:emp})
         }else{
-            return res.status(200).json({msg:'user not an employee',name,})
+            return res.status(500).json({msg:'user not an employee',name})
         }
+
+        
     } catch (error) {
         res.status(500).json({
             Error:'User not found'
