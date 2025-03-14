@@ -64,7 +64,7 @@ app.get('/emp/:empID',async (req,res) => {
         if(emp){
            return res.status(200).json({msg:emp})
         }else{
-            return res.status(500).json({msg:'user not an employee',name})
+            return res.status(500).json({msg:'NOR',name})
         }
 
         
