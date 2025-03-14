@@ -51,7 +51,7 @@ app.get('/emp/:empID',async (req,res) => {
         if(name === ''){
             let emp = await Employee.findOne({empID})
             if(emp){
-                return res.status(200).json({msg:emp})
+                return res.status(200).json({msg:'EMP',USR:emp})
             }
             return res.status(500).json({msg:'Employee not found'})
         }
@@ -62,9 +62,9 @@ app.get('/emp/:empID',async (req,res) => {
             ]
         })
         if(emp){
-           return res.status(200).json({msg:emp})
+           return res.status(200).json({msg:'EMP',USR:emp})
         }else{
-            return res.status(500).json({msg:'NOR',name})
+            return res.status(500).json({msg:'NOR',USR:emp})
         }
 
         
