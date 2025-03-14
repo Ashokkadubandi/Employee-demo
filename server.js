@@ -3,6 +3,9 @@ const express = require('express')
 const app = express()
 const PORT = process.env.PORT || 3002
 const Employee = require('./Model/employee')
+const CORS = require('cors')
+
+app.use(CORS())
 
 app.use(express.json())
 
