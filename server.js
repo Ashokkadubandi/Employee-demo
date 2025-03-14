@@ -46,24 +46,25 @@ app.get('/empAll',async (req,res) => {
 app.get('/emp/:empID',async (req,res) => {
     const {name} = req.query
     const {empID} = req.params
-    console.log(name)
     try {
+        if(name === ''){
+            let emp = await Employee.findOne({empID})
+            if(emp){
+                return res.status(200).json({msg:emp})
+            }
+            return res.status(500).json({msg:'Employee not found'})
+        }
         let emp = await Employee.findOne({
             $and:[
                 {empID:empID},
                 {empName:name}
             ]
         })
-        if(emp === null){
-            return res.status(500).json({
-                msg:'user is not an employee',
-                emp:name
-            })
+        if(emp){
+           return res.status(200).json({msg:emp})
+        }else{
+            return res.status(200).json({msg:'user not an employee',name,})
         }
-        res.status(200).json({
-            msg:emp
-    })
-        
     } catch (error) {
         res.status(500).json({
             Error:'User not found'
