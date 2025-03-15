@@ -2,6 +2,7 @@ const connectDB = require('./config/db')
 const express = require('express')
 const app = express()
 const PORT = process.env.PORT || 3002
+const User = require('./Model/userAuth')
 const Employee = require('./Model/employee')
 const CORS = require('cors')
 
@@ -10,6 +11,66 @@ app.use(CORS())
 app.use(express.json())
 
 connectDB()
+
+app.post('/reg',async (req,res) => {
+    const {name,email,password,EMPID} = req.body
+    let isEmp = await Employee.findOne({
+        $and:[
+            {empID:EMPID},
+            {empName:name}
+        ]
+    })
+    let isEmpName = await Employee.findOne({empName:name})
+    let isEmpId = await Employee.findOne({empID:EMPID})
+    try {
+        if(isEmp !== null){
+            const optUser = new User({name,email,password,EMPID,userType:'WEMP'})
+            let saveStatus = await optUser.save()
+            res.status(200).json({
+                msg:'saves as employee user'
+            })
+        }else{
+            if(isEmpId === null && isEmpName && EMPID !== ''){
+                return res.status(500).json({
+                    msg:'ID NOT MATCH'
+                })
+            }else if(isEmpName === null && isEmpId && EMPID !== ''){
+                return res.status(500).json({
+                    msg:'NAME NOT MATCH'
+                })
+    
+            }else if(isEmpName === null && isEmpId === null && EMPID !== ''){
+                return res.status(500).json({
+                    msg:'NOT AN EMPLOYEE'
+                })
+            }else if(isEmpName !== null && isEmpId !== null && EMPID !== '' && isEmp === null){
+                return res.status(500).json({
+                    msg:'Employee details are not valid'
+                })
+            }
+            else{
+                const empUser = new User({name,email,password,EMPID,userType:'WUSR'})
+                let saveEmpUsr = await empUser.save()
+                res.status(200).json({
+                    msg:'saved as normal user',
+                    user:'saveEmpUsr'
+                })
+            }
+        }
+        
+    } catch (error) {
+        res.status(500).json({
+            msg:'Connection Error',
+            Err:error
+        })
+        
+    }
+})
+
+app.get('/log', async (req,res) => {
+    let data = await User.find()
+    res.send(data)
+})
 
 app.post('/send',async (req,res) => {
     const {empID,empName} = req.body
