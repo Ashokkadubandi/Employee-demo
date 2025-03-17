@@ -28,7 +28,8 @@ app.post('/reg',async (req,res) => {
             const optUser = new User({name,email,password,EMPID,userType:'WEMP'})
             let saveStatus = await optUser.save()
             res.status(200).json({
-                msg:'saved as employee user'
+                msg:'saved as employee user',
+                type:saveStatus.userType
             })
             
         }else{
@@ -49,7 +50,8 @@ app.post('/reg',async (req,res) => {
                 console.log(saveEmpUsr)
                 return res.status(200).json({
                     msg:'saved as normal user',
-                    user:'saveEmpUsr'
+                    user:'saveEmpUsr',
+                    type:saveEmpUsr.userType
                 })
             }
         }
