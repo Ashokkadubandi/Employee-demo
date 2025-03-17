@@ -14,7 +14,6 @@ connectDB()
 
 app.post('/reg',async (req,res) => {
     const {name,email,password,EMPID} = req.body
-    console.log(req.body)
     let isEmp = await Employee.findOne({
         $and:[
             {empID:EMPID},
@@ -26,13 +25,30 @@ app.post('/reg',async (req,res) => {
     try {
         if(isEmp){
             const optUser = new User({name,email,password,EMPID,userType:'WEMP'})
-            let saveStatus = await optUser.save()
-            res.status(200).json({
-                msg:'saved as employee user',
-                type:saveStatus.userType
+            let heisreg = await User.findOne({
+                $and:[
+                    {name},
+                    {EMPID},
+                    {email}
+                ]
             })
+            if(!heisreg){
+
+                let saveStatus = await optUser.save()
+                res.status(200).json({
+                    msg:'saved as employee user',
+                    type:saveStatus.userType
+                })
+            }else{
+                res.status(200).json({
+                    msg:'Already saved',
+                    type:heisreg.userType
+                })
+            }
+
             
         }else{
+            console.log('Error')
             if(isEmpName && !isEmp){
                 return res.status(500).json({
                     msg:'Employee ID not found',
@@ -45,9 +61,11 @@ app.post('/reg',async (req,res) => {
                     Name:name
                 })
             }else{
+
                 const empUser = new User({name,email,password,EMPID,userType:'WUSR'})
                 let saveEmpUsr = await empUser.save()
                 console.log(saveEmpUsr)
+                
                 return res.status(200).json({
                     msg:'saved as normal user',
                     user:'saveEmpUsr',
@@ -57,8 +75,9 @@ app.post('/reg',async (req,res) => {
         }
         
     } catch (error) {
+        console.log(error)
         res.status(500).json({
-            msg:'User already exist'
+            msg:'User already exist or User not found'
         })
         
     }
