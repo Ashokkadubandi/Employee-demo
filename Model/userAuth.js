@@ -4,7 +4,7 @@ const userModel = new mongoose.Schema({
     name:{type:String,required:true},
     email:{type:String,required:true,unique:true},
     password:{type:String,required:true},
-    EMPID:{type:String},
+    EMPID:{type:String,unique:true},
     userType:{type:String}
 })
 
