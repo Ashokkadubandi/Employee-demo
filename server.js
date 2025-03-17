@@ -57,6 +57,9 @@ app.post('/reg',async (req,res) => {
         }
         
     } catch (error) {
+        res.status(500).json({
+            msg:'User already exist'
+        })
         
     }
 })
