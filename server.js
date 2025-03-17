@@ -14,6 +14,7 @@ connectDB()
 
 app.post('/reg',async (req,res) => {
     const {name,email,password,EMPID} = req.body
+    console.log(req.body)
     let isEmp = await Employee.findOne({
         $and:[
             {empID:EMPID},
@@ -23,35 +24,30 @@ app.post('/reg',async (req,res) => {
     let isEmpName = await Employee.findOne({empName:name})
     let isEmpId = await Employee.findOne({empID:EMPID})
     try {
-        if(isEmp !== null){
+        if(isEmp){
             const optUser = new User({name,email,password,EMPID,userType:'WEMP'})
             let saveStatus = await optUser.save()
             res.status(200).json({
-                msg:'saves as employee user'
+                msg:'saved as employee user'
             })
+            
         }else{
-            if(isEmpId === null && isEmpName && EMPID !== ''){
+            if(isEmpName && !isEmp){
                 return res.status(500).json({
-                    msg:'ID NOT MATCH'
-                })
-            }else if(isEmpName === null && isEmpId && EMPID !== ''){
-                return res.status(500).json({
-                    msg:'NAME NOT MATCH'
-                })
-    
-            }else if(isEmpName === null && isEmpId === null && EMPID !== ''){
-                return res.status(500).json({
-                    msg:'NOT AN EMPLOYEE'
-                })
-            }else if(isEmpName !== null && isEmpId !== null && EMPID !== '' && isEmp === null){
-                return res.status(500).json({
-                    msg:'Employee details are not valid'
+                    msg:'Employee ID not found',
+                    ID:EMPID
                 })
             }
-            else{
+            else if(isEmpId && !isEmp){
+                return res.status(500).json({
+                    msg:'Employee Name not found',
+                    Name:name
+                })
+            }else{
                 const empUser = new User({name,email,password,EMPID,userType:'WUSR'})
                 let saveEmpUsr = await empUser.save()
-                res.status(200).json({
+                console.log(saveEmpUsr)
+                return res.status(200).json({
                     msg:'saved as normal user',
                     user:'saveEmpUsr'
                 })
@@ -59,10 +55,6 @@ app.post('/reg',async (req,res) => {
         }
         
     } catch (error) {
-        res.status(500).json({
-            msg:'Connection Error',
-            Err:error
-        })
         
     }
 })
