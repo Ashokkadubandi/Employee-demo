@@ -4,8 +4,10 @@ const app = express()
 const PORT = process.env.PORT || 3002
 const User = require('./Model/userAuth')
 const Employee = require('./Model/employee')
+const jwt = require('jsonwebtoken')
 const CORS = require('cors')
-
+require('dotenv').config()
+const {SEC_KEY} = process.env
 app.use(CORS())
 
 app.use(express.json())
@@ -24,6 +26,8 @@ app.post('/reg',async (req,res) => {
     let isEmpId = await Employee.findOne({empID:EMPID})
     try {
         if(isEmp){
+            let payload = {user:name}
+            let jwtToken = jwt.sign(payload,SEC_KEY)
             const optUser = new User({name,email,password,EMPID,userType:'WEMP'})
             let heisreg = await User.findOne({
                 $and:[
@@ -33,22 +37,22 @@ app.post('/reg',async (req,res) => {
                 ]
             })
             if(!heisreg){
-
                 let saveStatus = await optUser.save()
                 res.status(200).json({
                     msg:'saved as employee user',
+                    token:jwtToken,
                     type:saveStatus.userType
                 })
             }else{
                 res.status(200).json({
                     msg:'Already saved',
+                    token:jwtToken,
                     type:heisreg.userType
                 })
             }
 
             
         }else{
-            console.log('Error')
             if(isEmpName && !isEmp){
                 return res.status(500).json({
                     msg:'Employee ID not found',
@@ -64,7 +68,6 @@ app.post('/reg',async (req,res) => {
 
                 const empUser = new User({name,email,password,EMPID,userType:'WUSR'})
                 let saveEmpUsr = await empUser.save()
-                console.log(saveEmpUsr)
                 
                 return res.status(200).json({
                     msg:'saved as normal user',
@@ -75,11 +78,30 @@ app.post('/reg',async (req,res) => {
         }
         
     } catch (error) {
-        console.log(error)
         res.status(500).json({
-            msg:'User already exist or User not found'
+            msg:'User already exist or User not found',
+            err:error.error
         })
         
+    }
+})
+
+app.post('/login', async (req,res) => {
+    const {email,password} = req.body
+    const isLogin = await User.findOne({
+        $and:[{email},{password}]
+    })
+    if(isLogin){
+        let jwtToken = jwt.sign({usr:email},SEC_KEY)
+        res.status(200).json({
+            token:jwtToken,
+            msg:{user:{name:isLogin.name,email,type:isLogin.userType}}
+
+        })
+    }else{
+        res.status(500).json({
+            msg:'User not found'
+        })
     }
 })
 
