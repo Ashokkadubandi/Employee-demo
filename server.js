@@ -15,72 +15,35 @@ app.use(express.json())
 connectDB()
 
 app.post('/reg',async (req,res) => {
-    const {name,email,password,EMPID} = req.body
-    let isEmp = await Employee.findOne({
-        $and:[
-            {empID:EMPID},
-            {empName:name}
-        ]
-    })
-    let isEmpName = await Employee.findOne({empName:name})
-    let isEmpId = await Employee.findOne({empID:EMPID})
+
     try {
-        if(isEmp){
-            let payload = {user:name}
-            let jwtToken = jwt.sign(payload,SEC_KEY)
-            const optUser = new User({name,email,password,EMPID,userType:'WEMP'})
-            let heisreg = await User.findOne({
-                $and:[
-                    {name},
-                    {EMPID},
-                    {email}
-                ]
-            })
-            if(!heisreg){
-                let saveStatus = await optUser.save()
+        const {name,email,password,EMPID} = req.body
+        let alredyReg = await User.findOne({$and:[{name},{email}]})
+        if(!alredyReg){
+            let isRetEmp = await Employee.findOne({empID:EMPID})
+            if(isRetEmp){
+                let newUser = new User({name,email,password,EMPID,userType:'REMP'})
+                let save_user = await newUser.save()
                 res.status(200).json({
-                    msg:'saved as employee user',
-                    token:jwtToken,
-                    type:saveStatus.userType
+                    msg:'User succesfully registered as Retired emp'
                 })
             }else{
+                if(!isRetEmp && EMPID !== ''){
+                    throw new Error('ID NOT MATCH')
+                }
+                let newUser = new User({name,email,password,userType:'NUSR'})
+                let save_user = await newUser.save()
                 res.status(200).json({
-                    msg:'Already saved',
-                    token:jwtToken,
-                    type:heisreg.userType
+                    msg:'User successfully registered as normal'
                 })
-            }
-
-            
+            }  
         }else{
-            if(isEmpName && !isEmp){
-                return res.status(500).json({
-                    msg:'Employee ID not found',
-                    ID:EMPID
-                })
-            }
-            else if(isEmpId && !isEmp){
-                return res.status(500).json({
-                    msg:'Employee Name not found',
-                    Name:name
-                })
-            }else{
-
-                const empUser = new User({name,email,password,EMPID,userType:'WUSR'})
-                let saveEmpUsr = await empUser.save()
-                
-                return res.status(200).json({
-                    msg:'saved as normal user',
-                    user:'saveEmpUsr',
-                    type:saveEmpUsr.userType
-                })
-            }
+            throw new Error('User already exist')
         }
-        
+
     } catch (error) {
         res.status(500).json({
-            msg:'User already exist or User not found',
-            err:error.error
+            err:error.message
         })
         
     }
