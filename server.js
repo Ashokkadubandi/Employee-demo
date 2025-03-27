@@ -15,19 +15,24 @@ app.use(express.json())
 connectDB()
 
 app.post('/reg',async (req,res) => {
-
     try {
         const {name,email,password,EMPID} = req.body
         let alredyReg = await User.findOne({$and:[{name},{email}]})
         if(!alredyReg){
             let isRetEmp = await Employee.findOne({empID:EMPID})
-            if(isRetEmp){
+            let isNameAndId = await Employee.findOne({$and:[{empName:name},{empID:EMPID}]})
+            if(isRetEmp && isNameAndId){
                 let newUser = new User({name,email,password,EMPID,userType:'REMP'})
                 let save_user = await newUser.save()
                 res.status(200).json({
                     msg:'User succesfully registered as Retired emp'
                 })
-            }else{
+            }else if(isRetEmp && !isNameAndId){
+                return res.status(500).json({
+                    msg:'Employee name not found'
+                })
+            }
+            else{
                 if(!isRetEmp && EMPID !== ''){
                     throw new Error('ID NOT MATCH')
                 }
@@ -40,7 +45,6 @@ app.post('/reg',async (req,res) => {
         }else{
             throw new Error('User already exist')
         }
-
     } catch (error) {
         res.status(500).json({
             err:error.message
@@ -50,21 +54,25 @@ app.post('/reg',async (req,res) => {
 })
 
 app.post('/login', async (req,res) => {
-    const {email,password} = req.body
-    const isLogin = await User.findOne({
-        $and:[{email},{password}]
-    })
-    if(isLogin){
-        let jwtToken = jwt.sign({usr:email},SEC_KEY)
-        res.status(200).json({
-            token:jwtToken,
-            msg:{user:{name:isLogin.name,email,type:isLogin.userType}}
-
-        })
-    }else{
+    try {
+        const {email,password} = req.body
+        const isLogin = await User.findOne({$and:[{email,password}]})
+        if(isLogin){
+            const Token = jwt.sign({usr:isLogin.name},SEC_KEY)
+            res.status(200).json({
+                msg:'User successfully Loged in!',
+                username:isLogin.name,
+                Token,
+            })
+        }else {
+            throw new Error('Invalid login Details')
+        }
+        
+    } catch (error) {
         res.status(500).json({
-            msg:'User not found'
+            msg:error.message
         })
+        
     }
 })
 
