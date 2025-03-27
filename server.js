@@ -62,7 +62,10 @@ app.post('/login', async (req,res) => {
             const Token = jwt.sign({usr:isLogin.name},SEC_KEY)
             res.status(200).json({
                 msg:'User successfully Loged in!',
-                username:isLogin.name,
+                user:{name:isLogin.name,
+                    email:isLogin.email,
+                    type:isLogin.userType
+                },
                 Token,
             })
         }else {
