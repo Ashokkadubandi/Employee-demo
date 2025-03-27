@@ -6,6 +6,7 @@ const User = require('./Model/userAuth')
 const Employee = require('./Model/employee')
 const jwt = require('jsonwebtoken')
 const CORS = require('cors')
+const BusRoute = require('./Routes/busRouter')
 require('dotenv').config()
 const {SEC_KEY} = process.env
 app.use(CORS())
@@ -75,6 +76,8 @@ app.post('/login', async (req,res) => {
         
     }
 })
+
+app.use('/',BusRoute);
 
 app.get('/log', async (req,res) => {
     let data = await User.find()
